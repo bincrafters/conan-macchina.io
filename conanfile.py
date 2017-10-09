@@ -23,13 +23,21 @@ class MacchinaioConan(ConanFile):
     default_options = "shared=True", "with_V8_snapshot=True", "install=all"
     exports = "LICENSE"
     install_dir = tempfile.mkdtemp(prefix=name)
+    release_dir = "macchina.io-macchina-%s-release" % version
 
     def source(self):
         tools.get("https://github.com/macchina-io/macchina.io/archive/macchina-%s-release.tar.gz" % self.version)
 
+    def configure(self):
+        if tools.os_info.is_linux and self.settings.compiler.version >= "5.0" and self.settings.compiler == "gcc":
+            self.output.warn("V8 SNAPSHOT may fail on gcc>=5.0")
+        elif tools.os_info.is_linux and self.settings.compiler.version >= "3.8" and self.settings.compiler == "clang":
+            self.output.warn("V8 SNAPSHOT may fail on clang>=3.8")
+
     def build(self):
-        with tools.chdir("macchina.io-macchina-%s-release" % self.version):
+        with tools.chdir(self.release_dir):
             self._host_tools()
+            self._configure_v8()
             self._build()
             self._install()
             self._replace_configuration()
@@ -47,12 +55,21 @@ class MacchinaioConan(ConanFile):
             with tools.environment_append(env_build.vars):
                 env_build.make(["-s", "hosttools"])
 
+    def _configure_v8(self):
+        conan_magic_lines = """
+all_shared: shared_debug shared_release
+
+static_release: shared_release
+
+static_debug: shared_debug
+"""
+        tools.replace_in_file(path.join(self.build_folder, self.release_dir, "platform", "JS", "V8", "Makefile"), "all_shared: shared_debug shared_release", conan_magic_lines)
+
     def _build(self):
         env_build = AutoToolsBuildEnvironment(self)
         env_vars = env_build.vars
         if tools.detected_architecture() != self.settings.arch:
             env_vars["LINKMODE"] = "SHARED" if self.options.shared else "STATIC"
-
         with tools.environment_append(env_vars):
             env_build.make(args=self._make_args())
 

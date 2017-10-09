@@ -1,0 +1,55 @@
+variables:
+  CONAN_USERNAME: "bincrafters"
+  CONAN_REFERENCE: "macchina.io/0.7.0"
+  CONAN_CHANNEL: "testing"
+  CONAN_STABLE_BRANCH_PATTERN: "release/*"
+  CONAN_UPLOAD: "https://api.bintray.com/conan/conan-community/conan"
+  CONAN_UPLOAD_ONLY_WHEN_STABLE: "1"
+
+.conan-run: &conan-run
+  before_script:
+    - sudo pip install -U conan --upgrade
+    - sudo pip install -U conan_package_tools
+    - conan profile new default --detect || true
+  script:
+    - python build.py
+
+gcc-4.9:
+  image: lasote/conangcc49
+  variables:
+    CONAN_GCC_VERSIONS: "4.9"
+    CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
+
+gcc-5.4:
+  image: lasote/conangcc54
+  variables:
+    CONAN_GCC_VERSIONS: "5.4"
+    CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
+
+gcc-6.3:
+  image: lasote/conangcc63
+  variables:
+    CONAN_GCC_VERSIONS: "6.3"
+    CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
+
+clang-3.9:
+  image: lasote/conanclang39
+  variables:
+    CONAN_CLANG_VERSIONS: "3.9"
+    CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
+
+clang-4.0:
+  image: lasote/conanclang40
+  variables:
+    CONAN_CLANG_VERSIONS: "4.0"
+    CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
