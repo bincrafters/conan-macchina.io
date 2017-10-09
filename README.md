@@ -19,37 +19,36 @@ If your are in Windows you should run it from a VisualStudio console in order to
 ## Add remote server
 
     $ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-    
+
 ## Upload packages to server
 
     $ conan upload -r bincrafters macchina.io/0.7.0@bincrafters/stable --all
-    
+
 ## Reuse the packages
 
 ### Basic setup
 
     $ conan install -r bincrafters macchina.io/0.7.0@bincrafters/stable
-    
+
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
-    
+
     [requires]
     macchina.io/0.7.0@bincrafters/stable
 
     [options]
-    macchina.io:shared=True # False
-    
+    macchina.io:with_V8_snapshot=True # False
+
     [generators]
     txt
     cmake
 
 Complete the installation of requirements for your project running:</small></span>
 
-    conan install . 
+    conan install .
 
 Project setup installs the library (and all his dependencies) and generates the files *conanbuildinfo.txt* and *conanbuildinfo.cmake* with all the paths and variables that you need to link with your dependencies.
 
 ## License
 [Apache-2.0](LICENSE)
-

@@ -23,15 +23,25 @@ else:
 class MacchinaioTestConan(ConanFile):
     settings = "os", "compiler", "arch", "build_type"
 
+    def imports(self):
+        self.copy(pattern="*", src="bin", dst="bin")
+
     def test(self):
         config_file = os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "macchina.properties")
         bundles_dir = os.path.join(self.deps_cpp_info["macchina.io"].lib_paths[0], "bundles")
         _, pid_file = tempfile.mkstemp()
 
         env_build = RunEnvironment(self)
-        with tools.environment_append(env_build.vars):
+        env_vars = env_build.vars
+        env_vars["PATH"] = "bin"
+        env_vars["LD_LIBRARY_PATH"].append(os.path.join("bin", "codeCache"))
 
-            self.run("macchina --daemon -B%s -c%s -C --pidfile=%s" % (bundles_dir, config_file, pid_file))
+        os.symlink(os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "macchina.pem"), os.path.join("bin", "macchina.pem"))
+        os.symlink(os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "rootcert.pem"), os.path.join("bin", "rootcert.pem"))
+        print("ENV: %s" % env_vars)
+        with tools.environment_append(env_vars):
+            self.run("macchina --daemon -B%s -c%s --pidfile=%s" % (bundles_dir, config_file, pid_file))
+            # Wait for server get ready
             time.sleep(3)
 
             try:
