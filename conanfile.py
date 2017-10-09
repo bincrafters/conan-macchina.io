@@ -29,6 +29,7 @@ class MacchinaioConan(ConanFile):
 
     def build(self):
         with tools.chdir("macchina.io-macchina-%s-release" % self.version):
+            self._host_tools()
             self._build()
             self._install()
             self._replace_configuration()
@@ -40,8 +41,16 @@ class MacchinaioConan(ConanFile):
         make_args.append("V8_SNAPSHOT=1" if self.options.with_V8_snapshot else "V8_NOSNAPSHOT=1")
         return make_args
 
+    def _host_tools(self):
+        if tools.detected_architecture() != self.settings.arch:
+            env_build = AutoToolsBuildEnvironment(self)
+            with tools.environment_append(env_build.vars):
+                env_build.make(["-s", "hosttools"])
+
     def _build(self):
         env_build = AutoToolsBuildEnvironment(self)
+        if tools.detected_architecture() != self.settings.arch:
+            env_build.defines.append("LINKMODE=%s" % ("SHARED" if self.options.shared else "STATIC"))
         with tools.environment_append(env_build.vars):
             env_build.make(args=self._make_args())
 
