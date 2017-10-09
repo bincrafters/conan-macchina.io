@@ -22,10 +22,6 @@ else:
 
 class MacchinaioTestConan(ConanFile):
     settings = "os", "compiler", "arch", "build_type"
-    generators = "cmake"
-    username = os.getenv("CONAN_USERNAME", "bincrafters")
-    channel = os.getenv("CONAN_CHANNEL", "testing")
-    requires = "macchina.io/0.7.0@%s/%s" % (username, channel)
 
     def test(self):
         config_file = os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "macchina.properties")

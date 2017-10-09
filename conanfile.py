@@ -49,9 +49,11 @@ class MacchinaioConan(ConanFile):
 
     def _build(self):
         env_build = AutoToolsBuildEnvironment(self)
+        env_vars = env_build.vars
         if tools.detected_architecture() != self.settings.arch:
-            env_build.defines.append("LINKMODE=%s" % ("SHARED" if self.options.shared else "STATIC"))
-        with tools.environment_append(env_build.vars):
+            env_vars["LINKMODE"] = "SHARED" if self.options.shared else "STATIC"
+
+        with tools.environment_append(env_vars):
             env_build.make(args=self._make_args())
 
     def _install(self):
