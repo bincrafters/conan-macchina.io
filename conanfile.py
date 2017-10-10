@@ -19,8 +19,8 @@ class MacchinaioConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     description = "macchina.io is a toolkit for building IoT edge and fog device applications in JavaScript and C++"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"with_V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"]}
-    default_options = "with_V8_snapshot=True", "install=all"
+    options = {"with_V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
+    default_options = "with_V8_snapshot=True", "install=all", "poco_config=False"
     exports = "LICENSE"
     install_dir = tempfile.mkdtemp(prefix=name)
     release_dir = "macchina.io-macchina-%s-release" % version
@@ -69,7 +69,7 @@ class MacchinaioConan(ConanFile):
 
         Execute hosttools when target platform is not same on host
         """
-        if tools.detected_architecture() != self.settings.arch:
+        if tools.detected_architecture() != self.settings.arch or self.options.poco_config:
             env_build = AutoToolsBuildEnvironment(self)
             with tools.environment_append(env_build.vars):
                 env_build.make(["-s", "hosttools"])
@@ -82,8 +82,10 @@ class MacchinaioConan(ConanFile):
         env_build = AutoToolsBuildEnvironment(self)
         env_vars = env_build.vars
         if tools.detected_architecture() != self.settings.arch:
-            env_vars["LINKMODE"] = "SHARED" if self.options.shared else "STATIC"
-        with tools.environment_append(env_vars):
+            env_vars["LINKMODE"] = "SHARED"
+        if self.options.poco_config:
+            env_vars.["POCO_CONFIG"] = self.options.poco_config
+        with tools.environment_append(env_build.vars):
             env_build.make(args=self._make_args())
 
     def _install(self):
