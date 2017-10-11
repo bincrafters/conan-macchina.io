@@ -72,7 +72,7 @@ class MacchinaioConan(ConanFile):
         if tools.detected_architecture() != self.settings.arch or self.options.poco_config:
             env_build = AutoToolsBuildEnvironment(self)
             with tools.environment_append(env_build.vars):
-                env_build.make(["-s", "hosttools"])
+                env_build.make(["-s", "hosttools", "DEFAULT_TARGET=shared_%s" % self.settings.build_type.value.lower()])
 
     def _build(self):
         """Execute make (no configure necessary)
@@ -84,8 +84,8 @@ class MacchinaioConan(ConanFile):
         if tools.detected_architecture() != self.settings.arch:
             env_vars["LINKMODE"] = "SHARED"
         if self.options.poco_config:
-            env_vars.["POCO_CONFIG"] = self.options.poco_config
-        with tools.environment_append(env_build.vars):
+            env_vars["POCO_CONFIG"] = str(self.options.poco_config)
+        with tools.environment_append(env_vars):
             env_build.make(args=self._make_args())
 
     def _install(self):
