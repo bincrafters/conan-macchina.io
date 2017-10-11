@@ -50,5 +50,21 @@ Complete the installation of requirements for your project running:</small></spa
 
 Project setup installs the library (and all his dependencies) and generates the files *conanbuildinfo.txt* and *conanbuildinfo.cmake* with all the paths and variables that you need to link with your dependencies.
 
+## Version update
+
+The script **update_version.py** is a helper to increment major, minor and patch version by 1, independently.
+
+To update **only** minor version:
+
+    $ python scripts/update_version.py --minor
+
+To update minor version **and** major version:
+
+    $ python scripts/update_version.py --major --minor
+
+To update **only** patch version:
+
+    $ python scripts/update_version.py --patch
+
 ## License
 [Apache-2.0](LICENSE)
