@@ -22,13 +22,6 @@ matrix:
    include:
 
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=4.7 CONAN_ARCHS=armv7
-        install:
-          - sudo apt-get -qq install -y gcc-arm-linux-gnueabi g++-arm-linux-gnueabi
-          - chmod +x .travis/install.sh
-          - ./.travis/install.sh
-
-      - <<: *linux
         env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 CONAN_ARCHS=x86_64
 
       - <<: *linux
