@@ -70,7 +70,7 @@ class MacchinaioConan(ConanFile):
         """
         env_build = AutoToolsBuildEnvironment(self)
         env_vars = env_build.vars
-        if tools.detected_architecture() != self.settings.arch:
+        if tools.detected_architecture() != self.settings.arch or self.options.poco_config:
             env_vars["LINKMODE"] = "SHARED"
         if self.options.poco_config:
             env_vars["POCO_CONFIG"] = str(self.options.poco_config)
