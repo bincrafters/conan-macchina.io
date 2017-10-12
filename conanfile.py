@@ -19,8 +19,8 @@ class MacchinaioConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     description = "macchina.io is a toolkit for building IoT edge and fog device applications in JavaScript and C++"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"with_V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
-    default_options = "with_V8_snapshot=True", "install=all", "poco_config=False"
+    options = {"V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
+    default_options = "V8_snapshot=True", "install=all", "poco_config=False"
     exports = "LICENSE"
     install_dir = tempfile.mkdtemp(prefix=name)
     release_dir = "macchina.io-macchina-%s-release" % version
@@ -31,17 +31,6 @@ class MacchinaioConan(ConanFile):
         No checksum is validated
         """
         tools.get("https://github.com/macchina-io/macchina.io/archive/macchina-%s-release.tar.gz" % self.version)
-
-    def configure(self):
-        """Create alert about V8 SNAPSHOT
-
-        With some cross toolchains building the V8 library may fail when building the mksnapshot executable.
-        If this happens, you can disable the V8 snapshot feature by building with the variable V8_NOSNAPSHOT defined.
-        """
-        if tools.os_info.is_linux and self.settings.compiler.version >= "5.0" and self.settings.compiler == "gcc":
-            self.output.warn("V8 SNAPSHOT may fail on gcc>=5.0")
-        elif tools.os_info.is_linux and self.settings.compiler.version >= "3.8" and self.settings.compiler == "clang":
-            self.output.warn("V8 SNAPSHOT may fail on clang>=3.8")
 
     def build(self):
         """Build macchina.io project
@@ -61,7 +50,7 @@ class MacchinaioConan(ConanFile):
         make_args = []
         make_args.append("-s")
         make_args.append("DEFAULT_TARGET=shared_%s" % self.settings.build_type.value.lower())
-        make_args.append("V8_SNAPSHOT=1" if self.options.with_V8_snapshot else "V8_NOSNAPSHOT=1")
+        make_args.append("V8_SNAPSHOT=1" if self.options.V8_snapshot else "V8_NOSNAPSHOT=1")
         return make_args
 
     def _host_tools(self):

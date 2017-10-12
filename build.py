@@ -15,9 +15,9 @@ if __name__ == "__main__":
     filtered_builds = []
     for settings, options, env_vars, build_requires in builder.builds:
         if tools.os_info.is_linux and settings["compiler"] == "gcc" and settings["compiler.version"] >= "5.0":
-            options["macchina.io:with_V8_snapshot"] = False
+            options["macchina.io:V8_snapshot"] = False
         elif tools.os_info.is_linux and settings["compiler"] == "clang":
-            options["macchina.io:with_V8_snapshot"] = False
+            options["macchina.io:V8_snapshot"] = False
         filtered_builds.append([settings, options, env_vars, build_requires])
     builder.builds = filtered_builds
 
