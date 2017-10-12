@@ -13,17 +13,20 @@ from conans import ConanFile, AutoToolsBuildEnvironment, tools
 class MacchinaioConan(ConanFile):
     name = "macchina.io"
     version = "0.7.0"
+    settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "txt"
+
     license = "https://github.com/macchina-io/macchina.io/blob/master/LICENSE"
     url = "https://github.com/macchina-io/macchina.io"
     author = "Bincrafters <bincrafters@gmail.com>"
     description = "macchina.io is a toolkit for building IoT edge and fog device applications in JavaScript and C++"
-    settings = "os", "compiler", "build_type", "arch"
+
+    requires = "OpenSSL/1.0.2l@conan/stable"
     options = {"V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
     default_options = "V8_snapshot=True", "install=all", "poco_config=False"
-    exports = "LICENSE"
     install_dir = tempfile.mkdtemp(prefix=name)
     release_dir = "macchina.io-macchina-%s-release" % version
+
 
     def source(self):
         """Download macchina.io on release version and unpack the file
@@ -102,7 +105,7 @@ class MacchinaioConan(ConanFile):
         Copy all necessary files to create a complete package.
         The libv8 is not installed by default, the package copies it from the build folder
         """
-        self.copy("LICENSE", dst=".", src=".")
+        self.copy("LICENSE", dst=".", src=self.release_dir)
         self.copy("*.h", dst="include", src=path.join(self.install_dir, "include"))
         self.copy("*.bndl", dst="lib", src=path.join(self.install_dir, "lib"))
 
