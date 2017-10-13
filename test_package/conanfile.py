@@ -35,12 +35,13 @@ class MacchinaioTestConan(ConanFile):
         env_vars = env_build.vars
         env_vars["PATH"] = "bin"
         env_vars["LD_LIBRARY_PATH"].append(os.path.join("bin", "codeCache"))
+        assert(os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "macchina.pem"))
 
         os.symlink(os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "macchina.pem"), os.path.join("bin", "macchina.pem"))
         os.symlink(os.path.join(self.deps_cpp_info["macchina.io"].res_paths[0], "rootcert.pem"), os.path.join("bin", "rootcert.pem"))
-        print("ENV: %s" % env_vars)
         with tools.environment_append(env_vars):
-            self.run("macchina --daemon -B%s -c%s --pidfile=%s" % (bundles_dir, config_file, pid_file))
+            suffix = "d" if self.settings.build_type == "Debug" else ""
+            self.run("macchina%s --daemon -B%s -c%s --pidfile=%s" % (suffix, bundles_dir, config_file, pid_file))
             # Wait for server get ready
             time.sleep(3)
 

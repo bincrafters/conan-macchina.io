@@ -6,7 +6,7 @@ package with all artifacts.
 """
 
 import tempfile
-from os import path
+from os import path, walk
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
 
 
@@ -21,7 +21,6 @@ class MacchinaioConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     description = "macchina.io is a toolkit for building IoT edge and fog device applications in JavaScript and C++"
 
-    requires = "OpenSSL/1.0.2l@conan/stable"
     options = {"V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
     default_options = "V8_snapshot=True", "install=all", "poco_config=False"
     install_dir = tempfile.mkdtemp(prefix=name)
@@ -41,9 +40,29 @@ class MacchinaioConan(ConanFile):
         Execute all steps necessary to build macchina.io project
         """
         with tools.chdir(self.release_dir):
+            self._solve_debug_names()
             self._host_tools()
             self._build()
             self._install()
+
+    def _solve_debug_names(self):
+        """Replace bundle tool name when the build mode is debug
+
+        BUNDLE_TOOL can be found in many files, using the release. However, when the tools is build in debug mode,
+        the suffix `d` is added to the name
+        """
+        if self.settings.build_type != "Debug":
+            return
+
+        magic_line = "BUNDLE_TOOL = $(POCO_BASE)/OSP/BundleCreator/$(POCO_HOST_BINDIR)/bundle"
+        for root, _, files in walk("."):
+            for f in files:
+                if f == "Makefile" or f == "Makefile-Bundle":
+                    try:
+                        tools.replace_in_file(path.join(root, f), magic_line, magic_line + 'd')
+                        print("REPLACE: %s" % path.join(root, f))
+                    except:
+                        pass
 
     def _make_args(self):
         """Fill make arguments to build macchina.io
@@ -109,10 +128,11 @@ class MacchinaioConan(ConanFile):
         self.copy("*.h", dst="include", src=path.join(self.install_dir, "include"))
         self.copy("*.bndl", dst="lib", src=path.join(self.install_dir, "lib"))
 
-        self.copy("RemoteGenNG", dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("bundle", dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("ccutil", dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("macchina", dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
+        suffix = "d" if self.settings.build_type == "Debug" else ""
+        self.copy("RemoteGenNG%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
+        self.copy("bundle%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
+        self.copy("ccutil%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
+        self.copy("macchina%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
 
         self.copy("macchina.pem", dst="res", src=path.join(self.install_dir, "etc"), keep_path=False)
         self.copy("macchina.properties", dst="res", src=path.join(self.install_dir, "etc"), keep_path=False)
