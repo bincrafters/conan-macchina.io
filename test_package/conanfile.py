@@ -43,10 +43,10 @@ class MacchinaioTestConan(ConanFile):
             suffix = "d" if self.settings.build_type == "Debug" else ""
             self.run("macchina%s --daemon -B%s -c%s --pidfile=%s" % (suffix, bundles_dir, config_file, pid_file))
             # Wait for server get ready
-            time.sleep(3)
+            time.sleep(5)
 
             try:
-                conn = httplib.HTTPConnection("localhost:22080")
+                conn = httplib.HTTPConnection("localhost", 22080)
                 conn.request("HEAD", "/macchina/login")
                 res = conn.getresponse()
 
