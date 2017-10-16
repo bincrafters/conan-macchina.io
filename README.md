@@ -66,5 +66,21 @@ To update **only** patch version:
 
     $ python scripts/update_version.py --patch
 
+## Cross-compiling and Custom configuration
+
+As supported in macchina.io, **POCO_CONFIG** was integrated as an option. It's possible to set custom a configuration as below:
+
+    [requires]
+    macchina.io/0.7.0@bincrafters/stable
+
+    [options]
+    macchina.io:poco_config=ARM-Linux
+
+    [generators]
+    txt
+    cmake
+
+The configuration above will set the target to ARM arch.
+
 ## License
 [Apache-2.0](LICENSE)

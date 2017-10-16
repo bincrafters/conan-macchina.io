@@ -6,7 +6,8 @@ package with all artifacts.
 """
 
 import tempfile
-from os import path, walk
+import shutil
+from os import path, walk, listdir
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
 
 
@@ -59,8 +60,7 @@ class MacchinaioConan(ConanFile):
             for f in files:
                 if f == "Makefile" or f == "Makefile-Bundle":
                     try:
-                        tools.replace_in_file(path.join(root, f), magic_line, magic_line + 'd')
-                        print("REPLACE: %s" % path.join(root, f))
+                        tools.replace_in_file(path.join(root, f), magic_line, "%sd" % magic_line)
                     except:
                         pass
 
@@ -75,14 +75,40 @@ class MacchinaioConan(ConanFile):
         make_args.append("V8_SNAPSHOT=1" if self.options.V8_snapshot else "V8_NOSNAPSHOT=1")
         return make_args
 
+    def _env_vars(self, env_build):
+        """Solve environment variables to build macchina.io
+
+        When cross-compiling is required, some addictional variables should be defined
+        """
+        env_vars = env_build.vars
+        if self.options.poco_config:
+            env_vars["POCO_CONFIG"] = str(self.options.poco_config)
+        return env_vars
+
+    def _configure_cross_building(self):
+        if self.settings.arch == "x86":
+            config_file = path.join(self.build_folder, self.release_dir, "platform", "build", "config", str(self.settings.os))
+
+            magic_line = """LINKMODE ?= SHARED
+POCO_TARGET_OSARCH = i386
+            """
+            tools.replace_in_file(file_path=config_file, search="LINKMODE ?= SHARED", replace=magic_line)
+
+            magic_line = "CXXFLAGS        = -Wall -Wno-sign-compare"
+            tools.replace_in_file(file_path=config_file, search=magic_line, replace="%s -m32" % magic_line)
+
+            magic_line = "SYSFLAGS = -D_XOPEN_SOURCE=600 -D_REENTRANT -D_THREAD_SAFE -D_FILE_OFFSET_BITS=%s -D_LARGEFILE64_SOURCE -DPOCO_HAVE_FD_EPOLL"
+            tools.replace_in_file(file_path=config_file, search=magic_line % "64", replace=magic_line % "32")
+
     def _host_tools(self):
         """Apply hosttools build
 
         Execute hosttools when target platform is not same on host
         """
-        if tools.detected_architecture() != self.settings.arch or self.options.poco_config:
+        if tools.cross_building(self.settings) or self.options.poco_config:
             env_build = AutoToolsBuildEnvironment(self)
-            with tools.environment_append(env_build.vars):
+            env_vars = env_build.vars
+            with tools.environment_append(env_vars):
                 env_build.make(["-s", "hosttools", "DEFAULT_TARGET=shared_%s" % self.settings.build_type.value.lower()])
 
     def _build(self):
@@ -91,12 +117,7 @@ class MacchinaioConan(ConanFile):
         When cross-compiling is used, LINKMODE is add on the environment
         """
         env_build = AutoToolsBuildEnvironment(self)
-        env_vars = env_build.vars
-        if tools.detected_architecture() != self.settings.arch or self.options.poco_config:
-            env_vars["LINKMODE"] = "SHARED"
-        if self.options.poco_config:
-            env_vars["POCO_CONFIG"] = str(self.options.poco_config)
-        with tools.environment_append(env_vars):
+        with tools.environment_append(self._env_vars(env_build)):
             env_build.make(args=self._make_args())
 
     def _install(self):
@@ -115,7 +136,7 @@ class MacchinaioConan(ConanFile):
         make_args.append("INSTALLDIR=%s" % self.install_dir)
 
         env_build = AutoToolsBuildEnvironment(self)
-        with tools.environment_append(env_build.vars):
+        with tools.environment_append(self._env_vars(env_build)):
             env_build.make(args=make_args)
 
     def package(self):
