@@ -6,8 +6,7 @@ package with all artifacts.
 """
 
 import tempfile
-import shutil
-from os import path, walk, listdir
+from os import path, walk
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
 
 
@@ -84,21 +83,6 @@ class MacchinaioConan(ConanFile):
         if self.options.poco_config:
             env_vars["POCO_CONFIG"] = str(self.options.poco_config)
         return env_vars
-
-    def _configure_cross_building(self):
-        if self.settings.arch == "x86":
-            config_file = path.join(self.build_folder, self.release_dir, "platform", "build", "config", str(self.settings.os))
-
-            magic_line = """LINKMODE ?= SHARED
-POCO_TARGET_OSARCH = i386
-            """
-            tools.replace_in_file(file_path=config_file, search="LINKMODE ?= SHARED", replace=magic_line)
-
-            magic_line = "CXXFLAGS        = -Wall -Wno-sign-compare"
-            tools.replace_in_file(file_path=config_file, search=magic_line, replace="%s -m32" % magic_line)
-
-            magic_line = "SYSFLAGS = -D_XOPEN_SOURCE=600 -D_REENTRANT -D_THREAD_SAFE -D_FILE_OFFSET_BITS=%s -D_LARGEFILE64_SOURCE -DPOCO_HAVE_FD_EPOLL"
-            tools.replace_in_file(file_path=config_file, search=magic_line % "64", replace=magic_line % "32")
 
     def _host_tools(self):
         """Apply hosttools build
