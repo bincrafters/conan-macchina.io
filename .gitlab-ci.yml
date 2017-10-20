@@ -10,7 +10,7 @@ variables:
   before_script:
     - sudo pip install -U conan --upgrade
     - sudo pip install -U conan_package_tools
-    - conan profile new default --detect || true
+    - conan user
   script:
     - python build.py
 
@@ -35,6 +35,14 @@ gcc-6.3:
   variables:
     CONAN_GCC_VERSIONS: "6.3"
     CONAN_ARCHS: "x86_64"
+    CONAN_BUILD_TYPES: "Release"
+  <<: *conan-run
+
+gcc-6.3-arm:
+  image: uilianries/conangcc63arm
+  variables:
+    CONAN_GCC_VERSIONS: "6.3"
+    CONAN_ARCHS: "armv7"
     CONAN_BUILD_TYPES: "Release"
   <<: *conan-run
 

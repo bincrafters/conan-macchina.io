@@ -34,15 +34,6 @@ class MacchinaioConan(ConanFile):
         """
         tools.get("https://github.com/macchina-io/macchina.io/archive/macchina-%s-release.tar.gz" % self.version)
 
-    def configure(self):
-        """Try to solve Poco configuration by target arch
-
-        Some targets are supported by default
-        """
-        if tools.cross_building(self.settings) and not self.options.poco_config:
-            if self.settings.arch == "armv7" and self.settings.os == "Linux":
-                self.options.poco_config = "ARM-Linux"
-
     def build(self):
         """Build macchina.io project
 
