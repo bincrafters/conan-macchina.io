@@ -5,9 +5,8 @@ package with all artifacts.
 
 """
 
-import tempfile
-from os import path, walk
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
+import os
 
 
 class MacchinaioConan(ConanFile):
@@ -23,8 +22,8 @@ class MacchinaioConan(ConanFile):
 
     options = {"V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
     default_options = "V8_snapshot=True", "install=all", "poco_config=False"
-    install_dir = tempfile.mkdtemp(prefix=name)
-    release_dir = "macchina.io-macchina-%s-release" % version
+    source_subfolder = "source_subfolder"
+    install_subfolder = "install_subfolder"
 
 
     def source(self):
@@ -33,13 +32,14 @@ class MacchinaioConan(ConanFile):
         No checksum is validated
         """
         tools.get("https://github.com/macchina-io/macchina.io/archive/macchina-%s-release.tar.gz" % self.version)
+        os.rename("macchina.io-macchina-%s-release" % self.version, self.source_subfolder)
 
     def build(self):
         """Build macchina.io project
 
         Execute all steps necessary to build macchina.io project
         """
-        with tools.chdir(self.release_dir):
+        with tools.chdir(self.source_subfolder):
             self._solve_debug_names()
             self._host_tools()
             self._build()
@@ -55,11 +55,11 @@ class MacchinaioConan(ConanFile):
             return
 
         magic_line = "BUNDLE_TOOL = $(POCO_BASE)/OSP/BundleCreator/$(POCO_HOST_BINDIR)/bundle"
-        for root, _, files in walk("."):
+        for root, _, files in os.walk("."):
             for f in files:
                 if f == "Makefile" or f == "Makefile-Bundle":
                     try:
-                        tools.replace_in_file(path.join(root, f), magic_line, "%sd" % magic_line)
+                        tools.replace_in_file(os.path.join(root, f), magic_line, "%sd" % magic_line)
                     except:
                         pass
 
@@ -117,7 +117,7 @@ class MacchinaioConan(ConanFile):
         make_args = [install_args]
 
         make_args.extend(self._make_args())
-        make_args.append("INSTALLDIR=%s" % self.install_dir)
+        make_args.append("INSTALLDIR=%s" % os.path.abspath(self.install_subfolder))
 
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(self._env_vars(env_build)):
@@ -129,24 +129,24 @@ class MacchinaioConan(ConanFile):
         Copy all necessary files to create a complete package.
         The libv8 is not installed by default, the package copies it from the build folder
         """
-        self.copy("LICENSE", dst=".", src=self.release_dir)
-        self.copy("*.h", dst="include", src=path.join(self.install_dir, "include"))
-        self.copy("*.bndl", dst="lib", src=path.join(self.install_dir, "lib"))
+        self.copy("LICENSE", src=self.source_subfolder, dst="licenses", ignore_case=True, keep_path=False)
+        self.copy("*.h", dst="include", src=os.path.join(self.install_subfolder, "include"))
+        self.copy("*.bndl", dst="lib", src=os.path.join(self.install_subfolder, "lib"))
 
         suffix = "d" if self.settings.build_type == "Debug" else ""
-        self.copy("RemoteGenNG%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("bundle%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("ccutil%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
-        self.copy("macchina%s" % suffix, dst="bin", src=path.join(self.install_dir, "bin"), keep_path=False)
+        self.copy("RemoteGenNG%s" % suffix, dst="bin", src=os.path.join(self.install_subfolder, "bin"), keep_path=False)
+        self.copy("bundle%s" % suffix, dst="bin", src=os.path.join(self.install_subfolder, "bin"), keep_path=False)
+        self.copy("ccutil%s" % suffix, dst="bin", src=os.path.join(self.install_subfolder, "bin"), keep_path=False)
+        self.copy("macchina%s" % suffix, dst="bin", src=os.path.join(self.install_subfolder, "bin"), keep_path=False)
 
-        self.copy("macchina.pem", dst="res", src=path.join(self.install_dir, "etc"), keep_path=False)
-        self.copy("macchina.properties", dst="res", src=path.join(self.install_dir, "etc"), keep_path=False)
-        self.copy("rootcert.pem", dst="res", src=path.join(self.install_dir, "etc"), keep_path=False)
+        self.copy("macchina.pem", dst="res", src=os.path.join(self.install_subfolder, "etc"), keep_path=False)
+        self.copy("macchina.properties", dst="res", src=os.path.join(self.install_subfolder, "etc"), keep_path=False)
+        self.copy("rootcert.pem", dst="res", src=os.path.join(self.install_subfolder, "etc"), keep_path=False)
 
         if tools.os_info.is_macos:
-            self.copy(pattern="*.dylib", dst="lib", src=path.join(self.install_dir, "lib"), keep_path=False)
+            self.copy(pattern="*.dylib", dst="lib", src=os.path.join(self.install_subfolder, "lib"), keep_path=False)
         else:
-            self.copy(pattern="*.so*", dst="lib", src=path.join(self.install_dir, "lib"), keep_path=False, symlinks="*.so")
+            self.copy(pattern="*.so*", dst="lib", src=os.path.join(self.install_subfolder, "lib"), keep_path=False, symlinks="*.so")
 
     def package_info(self):
         """Export macchina properties
@@ -154,8 +154,8 @@ class MacchinaioConan(ConanFile):
         Solve dynamic library path and put macchina in PATH
         """
         self.cpp_info.libs = tools.collect_libs(self)
-        self.env_info.PATH.append(path.join(self.package_folder, "bin"))
+        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
         if self.settings.os == "Linux":
-            self.env_info.LD_LIBRARY_PATH.append(path.join(self.package_folder, "lib"))
+            self.env_info.LD_LIBRARY_PATH.append(os.path.join(self.package_folder, "lib"))
         elif self.settings.os == "Macos":
-            self.env_info.DYLD_LIBRARY_PATH.append(path.join(self.package_folder, "lib"))
+            self.env_info.DYLD_LIBRARY_PATH.append(os.path.join(self.package_folder, "lib"))

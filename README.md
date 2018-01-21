@@ -1,86 +1,47 @@
-[![Build Status on Travis](https://travis-ci.org/bincrafters/conan-macchina.io.svg?branch=release/0.7.0)](https://travis-ci.org/bincrafters/conan-macchina.io)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+## Package Status
 
+| Bintray | Appveyor | Travis |
+|---------|-----------|--------|
+|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/macchina.io%3Abincrafters/images/download.svg)](https://bintray.com/bincrafters/public-conan/macchina.io%3Abincrafters/_latestVersion)||[![Build Status](https://travis-ci.org/bincrafters/conan-macchina.io.svg?branch=stable%2F9b)](https://travis-ci.org/bincrafters/conan-macchina.io)|
 
-# conan-macchina.io
+## Conan.io Information
 
-[Conan.io](https://conan.io) package for [macchina.io](http://macchina.io) project
+Bincrafters packages can be found in the following public Conan repository:
 
-The packages generated with this **conanfile** can be found in [conan.io](https://bintray.com/bincrafters/public-conan/macchina.io%3Abincrafters).
+[Bincrafters Public Conan Repository on Bintray](https://bintray.com/bincrafters/public-conan)
 
-## Build packages
+*Note: You can click the "Set Me Up" button on the Bintray page above for instrucations on using packages from this repository.*
 
-Download conan client from [Conan.io](https://conan.io) and run:
+## Issues
+a
+If you wish to report an issue or make a request for a Bincrafters package, please do so here:
 
-    $ python build.py
+[Bincrafters Community Issues](https://github.com/bincrafters/community/issues)
 
-If your are in Windows you should run it from a VisualStudio console in order to get "mc.exe" in path.
+## General Information
 
-## Add remote server
+This GIT repository is managed by the Bincrafters team and holds files related to Conan.io.  For detailed information about Bincrafters and Conan.io, please visit the following resources:
 
-    $ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+[Bincrafters Wiki - Common README](https://github.com/bincrafters/community/wiki/Common-README.md)
 
-## Upload packages to server
+[Bincrafters Technical Documentation](http://bincrafters.readthedocs.io/en/latest/)
 
-    $ conan upload -r bincrafters macchina.io/0.7.0@bincrafters/stable --all
+[Bincrafters Blog](https://bincrafters.github.io)
 
-## Reuse the packages
+## License Information
 
-### Basic setup
+Bincrafters packages are hosted on [Bintray](https://bintray.com) and contain Open-Source software which is licensed by the software's maintainers and NOT Bincrafters.  For each Open-Source package published by Bincrafters, the packaging process obtains the required license files along with the original source files from the maintainer, and includes these license files in the generated Conan packages.
 
-    $ conan install -r bincrafters macchina.io/0.7.0@bincrafters/stable
+The contents of this GIT repository are completely separate from the software being packaged and therefor licensed separately.  The license for all files contained in this GIT repository are defined in the [LICENSE.md](LICENSE.md) file in this repository.  The licenses included with all Conan packages published by Bincrafters can be found in the Conan package directories in the following locations, relative to the Conan Cache root (`~/.conan` by default):
 
-### Project setup
+### License(s) for packaged software:
 
-If you handle multiple dependencies in your project is better to add a *conanfile.txt*
+    ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/package/<random_package_id>/license/<LICENSE_FILES_HERE>
 
-    [requires]
-    macchina.io/0.7.0@bincrafters/stable
+*Note :   The most common filenames for OSS licenses are `LICENSE` AND `COPYING` without file extensions.*
+	
+### License for Bincrafters recipe:
 
-    [options]
-    macchina.io:with_V8_snapshot=True # False
+    ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/export/LICENSE.md
 
-    [generators]
-    txt
-    cmake
-
-Complete the installation of requirements for your project running:</small></span>
-
-    conan install .
-
-Project setup installs the library (and all his dependencies) and generates the files *conanbuildinfo.txt* and *conanbuildinfo.cmake* with all the paths and variables that you need to link with your dependencies.
-
-## Version update
-
-The script **update_version.py** is a helper to increment major, minor and patch version by 1, independently.
-
-To update **only** minor version:
-
-    $ python scripts/update_version.py --minor
-
-To update minor version **and** major version:
-
-    $ python scripts/update_version.py --major --minor
-
-To update **only** patch version:
-
-    $ python scripts/update_version.py --patch
-
-## Cross-compiling and Custom configuration
-
-As supported in macchina.io, **POCO_CONFIG** was integrated as an option. It's possible to set custom a configuration as below:
-
-    [requires]
-    macchina.io/0.7.0@bincrafters/stable
-
-    [options]
-    macchina.io:poco_config=ARM-Linux
-
-    [generators]
-    txt
-    cmake
-
-The configuration above will set the target to ARM arch.
-
-## License
-[Apache-2.0](LICENSE)
+	
