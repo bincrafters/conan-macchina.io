@@ -1,6 +1,6 @@
 from conans import tools
 from conan.packager import ConanMultiPackager
-
+import copy
 
 if __name__ == "__main__":
     builder = ConanMultiPackager(args="--build missing")
@@ -11,13 +11,15 @@ if __name__ == "__main__":
                 build_requires={})
 
     # V8 snapshot only works on gcc-4
-    filtered_builds = []
-    for settings, options, env_vars, build_requires in builder.builds:
-        if tools.os_info.is_linux and settings["compiler"] == "gcc" and settings["compiler.version"] >= "5.0":
-            options["macchina.io:V8_snapshot"] = False
+    items = []
+    for item in builder.items:
+        new_options = copy.copy(item.options)
+        if tools.os_info.is_linux and item.settings["compiler"] == "gcc" and item.settings["compiler.version"] >= "5.0":
+            new_options["macchina.io:V8_snapshot"] = False
         elif tools.os_info.is_linux and settings["compiler"] == "clang":
-            options["macchina.io:V8_snapshot"] = False
-        filtered_builds.append([settings, options, env_vars, build_requires])
-    builder.builds = filtered_builds
+            new_options["macchina.io:V8_snapshot"] = False
+        items.append([item.settings, new_options, item.env_vars,
+                      item.build_requires, item.reference])
+    builder.items = items
 
     builder.run()
