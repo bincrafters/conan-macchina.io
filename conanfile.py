@@ -16,10 +16,10 @@ class MacchinaioConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "txt"
 
-    license = "https://github.com/macchina-io/macchina.io/blob/master/LICENSE"
+    license = "Apache-2.0"
     url = "https://github.com/macchina-io/macchina.io"
-    author = "Bincrafters <bincrafters@gmail.com>"
     description = "macchina.io is a toolkit for building IoT edge and fog device applications in JavaScript and C++"
+    exports = ["LICENSE.md"]
 
     options = {"V8_snapshot": [True, False], "install": ["all", "sdk", "runtime"], "poco_config": "ANY"}
     default_options = "V8_snapshot=True", "install=all", "poco_config=False"
